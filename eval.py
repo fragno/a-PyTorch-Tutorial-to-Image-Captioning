@@ -2,22 +2,29 @@ import torch.backends.cudnn as cudnn
 import torch.optim
 import torch.utils.data
 import torchvision.transforms as transforms
+import configparser
 from datasets import *
 from utils import *
 from nltk.translate.bleu_score import corpus_bleu
 import torch.nn.functional as F
 from tqdm import tqdm
 
+config = configparser.ConfigParser()
+config.read('config.ini')
+currentCfg = config[config['common']['current']]
+
+
 # Parameters
-data_folder = '/media/ssd/caption data'  # folder with data files saved by create_input_files.py
-data_name = 'coco_5_cap_per_img_5_min_word_freq'  # base name shared by data files
-checkpoint = '../BEST_checkpoint_coco_5_cap_per_img_5_min_word_freq.pth.tar'  # model checkpoint
-word_map_file = '/media/ssd/caption data/WORDMAP_coco_5_cap_per_img_5_min_word_freq.json'  # word map, ensure it's the same the data was encoded with and the model was trained with
+dataset = currentCfg['dataset'] # dataset
+data_folder = currentCfg['data_folder']  # folder with data files saved by create_input_files.py
+data_name = currentCfg['data_name']  # base name shared by data files
+checkpoint = currentCfg['checkpoint'] # model checkpoint
+word_map_file = currentCfg['word_map_file']  # word map, ensure it's the same the data was encoded with and the model was trained with
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")  # sets device for model and PyTorch tensors
 cudnn.benchmark = True  # set to true only if inputs to model are fixed size; otherwise lot of computational overhead
 
 # Load model
-checkpoint = torch.load(checkpoint)
+checkpoint = torch.load(checkpoint, map_location=device)
 decoder = checkpoint['decoder']
 decoder = decoder.to(device)
 decoder.eval()
@@ -121,7 +128,7 @@ def evaluate(beam_size):
                 top_k_scores, top_k_words = scores.view(-1).topk(k, 0, True, True)  # (s)
 
             # Convert unrolled indices to actual indices of scores
-            prev_word_inds = top_k_words / vocab_size  # (s)
+            prev_word_inds = top_k_words // vocab_size  # (s)
             next_word_inds = top_k_words % vocab_size  # (s)
 
             # Add new words to sequences

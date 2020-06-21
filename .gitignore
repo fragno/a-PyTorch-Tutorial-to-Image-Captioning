@@ -1,0 +1,9 @@
+.DS_Store
+.vscode/
+__pycache__
+caption_datasets
+caption_datasets.zip
+BEST_checkpoint_coco_5_cap_per_img_5_min_word_freq.pth.tar
+BEST_checkpoint_flickr8k_5_cap_per_img_5_min_word_freq.pth.tar
+WORDMAP_coco_5_cap_per_img_5_min_word_freq.json
+WORDMAP_flickr8k_5_cap_per_img_5_min_word_freq.json
